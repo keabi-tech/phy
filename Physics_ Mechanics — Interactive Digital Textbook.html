@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Physics: Mechanics — Interactive Digital Textbook</title>
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+  svg: { fontCache: 'global' }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js"></script>
+<style>
+:root {
+  --bg: #f7f6f2;
+  --surface: #ffffff;
+  --surface-2: #f1efe9;
+  --text: #1d1d1f;
+  --muted: #5b5b63;
+  --accent: #1f5fbf;
+  --accent-soft: #e4edfb;
+  --border: #dcd9d0;
+  --def: #e8f4ea;
+  --def-border: #2e7d4f;
+  --expl: #eef2fb;
+  --expl-border: #1f5fbf;
+  --deriv: #f5f0fb;
+  --deriv-border: #6b3fa0;
+  --example: #fdf5e6;
+  --example-border: #c77d12;
+  --summary: #eef8f8;
+  --summary-border: #17807e;
+  --exam: #fdeeee;
+  --exam-border: #b3261e;
+  --sidebar-w: 300px;
+  --content-w: 780px;
+  --shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.04);
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --bg: #121417;
+  --surface: #1a1d22;
+  --surface-2: #22262d;
+  --text: #e9e9ec;
+  --muted: #a4a8b2;
+  --accent: #7ea9ff;
+  --accent-soft: #1d2a40;
+  --border: #2f343c;
+  --def: #17271d;
+  --def-border: #4fb37a;
+  --expl: #172033;
+  --expl-border: #7ea9ff;
+  --deriv: #241b30;
+  --deriv-border: #b58be0;
+  --example: #2e2415;
+  --example-border: #e0a040;
+  --summary: #12262a;
+  --summary-border: #4fc4c1;
+  --exam: #2d1717;
+  --exam-border: #ef7a72;
+  --shadow: 0 1px 3px rgba(0,0,0,.4);
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121417;
+    --surface: #1a1d22;
+    --surface-2: #22262d;
+    --text: #e9e9ec;
+    --muted: #a4a8b2;
+    --accent: #7ea9ff;
+    --accent-soft: #1d2a40;
+    --border: #2f343c;
+    --def: #17271d;
+    --def-border: #4fb37a;
+    --expl: #172033;
+    --expl-border: #7ea9ff;
+    --deriv: #241b30;
+    --deriv-border: #b58be0;
+    --example: #2e2415;
+    --example-border: #e0a040;
+    --summary: #12262a;
+    --summary-border: #4fc4c1;
+    --exam: #2d1717;
+    --exam-border: #ef7a72;
+    --shadow: 0 1px 3px rgba(0,0,0,.4);
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 90px; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Georgia", "Times New Roman", serif;
+  font-size: 18px;
+  line-height: 1.7;
+}
+h1, h2, h3, h4 { font-family: "Helvetica Neue", Arial, system-ui, sans-serif; line-height: 1.25; }
+a { color: var(--accent); }
+
+/* ---------- Progress bar ---------- */
+#progress {
+  position: fixed; top: 0; left: 0; height: 3px; width: 0;
+  background: var(--accent); z-index: 100; transition: width .1s linear;
+}
+
+/* ---------- Top bar ---------- */
+.topbar {
+  position: sticky; top: 0; z-index: 50;
+  display: flex; align-items: center; gap: 12px;
+  padding: calc(10px + env(safe-area-inset-top, 0px)) 16px 10px;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+.icon-btn {
+  background: var(--surface-2); color: var(--text);
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 6px 10px; cursor: pointer; font-size: 15px;
+  font-family: inherit;
+}
+.icon-btn:hover { border-color: var(--accent); }
+.topbar .title { font-family: "Helvetica Neue", Arial, sans-serif; font-weight: 600; font-size: 16px; flex: 1; }
+.topbar .spacer { flex: 1; }
+
+/* ---------- Layout ---------- */
+.layout { display: flex; min-height: calc(100vh - 50px); }
+
+/* ---------- Sidebar ---------- */
+.sidebar {
+  width: var(--sidebar-w); flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  position: sticky; top: 50px; height: calc(100vh - 50px);
+  overflow-y: auto; padding: 20px 14px 40px;
+  transition: margin-left .25s ease;
+}
+.sidebar.collapsed { margin-left: calc(var(--sidebar-w) * -1); }
+.sidebar h2 {
+  font-size: 12px; text-transform: uppercase; letter-spacing: .1em;
+  color: var(--muted); margin: 14px 8px 8px;
+}
+.sidebar ul { list-style: none; padding: 0; margin: 0; }
+.sidebar li a {
+  display: block; padding: 6px 10px; border-radius: 6px;
+  text-decoration: none; color: var(--text);
+  font-family: "Helvetica Neue", Arial, sans-serif; font-size: 14px;
+}
+.sidebar li a:hover { background: var(--surface-2); }
+.sidebar li a.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.sidebar .chapter-link { font-weight: 600; font-size: 14.5px; margin-top: 10px; }
+.sidebar .sub-link { padding-left: 22px; font-size: 13px; color: var(--muted); }
+.sidebar .sub-link.active { color: var(--accent); }
+
+/* ---------- Main ---------- */
+main {
+  flex: 1; min-width: 0;
+  padding: 40px 24px 120px;
+  display: flex; justify-content: center;
+}
+article { width: 100%; max-width: var(--content-w); }
+
+.hero {
+  padding: 36px 32px; border-radius: 16px;
+  background: linear-gradient(135deg, var(--accent-soft), var(--surface));
+  border: 1px solid var(--border); box-shadow: var(--shadow);
+  margin-bottom: 40px;
+}
+.hero h1 { font-size: 2.2rem; margin: 0 0 8px; }
+.hero p { color: var(--muted); margin: 0; font-size: 1.02rem; }
+
+.toc-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 22px 26px; margin-bottom: 40px;
+}
+.toc-card h3 { margin: 0 0 10px; }
+.toc-card ol { margin: 0; padding-left: 20px; }
+.toc-card li { margin: 4px 0; }
+
+.chapter { margin-bottom: 72px; }
+.chapter-header {
+  border-top: 4px solid var(--accent);
+  padding-top: 18px; margin-bottom: 28px;
+}
+.chapter-header .eyebrow {
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  text-transform: uppercase; letter-spacing: .12em;
+  font-size: 12px; color: var(--accent); font-weight: 700;
+}
+.chapter-header h2 { font-size: 2rem; margin: 6px 0 0; }
+
+section.topic { margin: 44px 0; scroll-margin-top: 90px; }
+section.topic h3 { font-size: 1.45rem; margin: 0 0 14px; color: var(--text); }
+section.topic h4 { font-size: 1.1rem; margin: 26px 0 10px; color: var(--accent); }
+section.topic p { margin: 0 0 14px; }
+section.topic ul, section.topic ol { margin: 0 0 16px; padding-left: 24px; }
+section.topic li { margin-bottom: 6px; }
+
+/* ---------- Callout boxes ---------- */
+.box {
+  border-left: 4px solid var(--expl-border);
+  background: var(--expl);
+  border-radius: 10px;
+  padding: 16px 20px; margin: 22px 0;
+}
+.box-label {
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  font-size: 12px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .08em; margin-bottom: 6px; color: var(--muted);
+}
+.box.def { background: var(--def); border-color: var(--def-border); }
+.box.expl { background: var(--expl); border-color: var(--expl-border); }
+.box.deriv { background: var(--deriv); border-color: var(--deriv-border); }
+.box.example { background: var(--example); border-color: var(--example-border); }
+.box.summary { background: var(--summary); border-color: var(--summary-border); }
+.box.exam { background: var(--exam); border-color: var(--exam-border); }
+.box.important { background: var(--expl); border-color: var(--exam-border); }
+
+/* ---------- Formula cards ---------- */
+.formula {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px 14px;
+  margin: 20px 0;
+  box-shadow: var(--shadow);
+  overflow-x: auto;
+  text-align: center;
+}
+.formula .tag {
+  position: absolute; top: 8px; left: 12px;
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  font-size: 11px; font-weight: 700; color: var(--accent);
+  letter-spacing: .06em; text-transform: uppercase;
+}
+.formula .eq-number {
+  position: absolute; top: 8px; right: 12px;
+  font-size: 12px; color: var(--muted);
+}
+.formula mjx-container { margin: 10px auto !important; }
+
+.variables {
+  margin: 10px 0 0; padding: 0; list-style: none;
+  font-size: 15px; text-align: left;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 6px 18px;
+}
+.variables li { color: var(--muted); }
+.variables strong { color: var(--text); }
+
+/* ---------- Tables ---------- */
+.table-wrap { overflow-x: auto; margin: 20px 0; border-radius: 10px; border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; font-size: 16px; background: var(--surface); }
+th, td { padding: 10px 14px; border-bottom: 1px solid var(--border); text-align: left; }
+th { background: var(--surface-2); font-family: "Helvetica Neue", Arial, sans-serif; font-size: 14px; }
+tr:last-child td { border-bottom: none; }
+
+/* ---------- Diagrams ---------- */
+figure.diagram {
+  margin: 24px 0; padding: 16px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; text-align: center;
+}
+figure.diagram svg { max-width: 100%; height: auto; }
+figure.diagram figcaption {
+  margin-top: 10px; font-size: 14px; color: var(--muted);
+  font-family: "Helvetica Neue", Arial, sans-serif;
+}
+.diagram-controls { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
+.diagram-controls label { font-family: "Helvetica Neue", Arial, sans-serif; font-size: 14px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+.diagram-controls input[type=range] { width: 180px; accent-color: var(--accent); }
+.diagram-readout { font-family: "Helvetica Neue", Arial, sans-serif; font-size: 14px; color: var(--text); font-weight: 600; }
+
+/* ---------- Worked example ---------- */
+.worked-steps { counter-reset: step; list-style: none; padding: 0; margin: 0; }
+.worked-steps > li {
+  counter-increment: step; position: relative;
+  padding: 14px 0 14px 46px; border-bottom: 1px dashed var(--border);
+}
+.worked-steps > li:last-child { border-bottom: none; }
+.worked-steps > li::before {
+  content: counter(step);
+  position: absolute; left: 0; top: 12px;
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--example-border); color: #fff;
+  font-family: "Helvetica Neue", Arial, sans-serif; font-weight: 700; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+}
+.final-answer {
+  margin-top: 14px; padding: 12px 16px; border-radius: 8px;
+  background: var(--surface); border: 2px solid var(--example-border);
+  font-family: "Helvetica Neue", Arial, sans-serif; font-weight: 600;
+}
+
+/* ---------- Summary / exam ---------- */
+.checklist { list-style: none; padding: 0; }
+.checklist li { padding-left: 26px; position: relative; margin-bottom: 8px; }
+.checklist li::before { content: "✓"; position: absolute; left: 0; color: var(--summary-border); font-weight: 700; }
+.exam-list li::before { content: "★"; color: var(--exam-border); }
+.exam-list { list-style: none; padding: 0; }
+.exam-list li { padding-left: 26px; position: relative; margin-bottom: 8px; }
+.exam-list li::before { position: absolute; left: 0; font-weight: 700; }
+
+.quiz { margin-top: 12px; }
+.quiz details { border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; margin: 8px 0; background: var(--surface); }
+.quiz summary { cursor: pointer; font-family: "Helvetica Neue", Arial, sans-serif; font-weight: 600; }
+.quiz details[open] summary { margin-bottom: 8px; color: var(--accent); }
+
+.sym-table td:first-child { font-family: "Times New Roman", serif; font-style: italic; white-space: nowrap; }
+
+/* ---------- Pager ---------- */
+.pager {
+  display: flex; justify-content: space-between; gap: 12px;
+  margin-top: 64px; padding-top: 24px; border-top: 1px solid var(--border);
+}
+.pager a {
+  flex: 1; padding: 14px 16px; border: 1px solid var(--border);
+  border-radius: 10px; text-decoration: none; color: var(--text);
+  background: var(--surface); font-family: "Helvetica Neue", Arial, sans-serif;
+}
+.pager a:hover { border-color: var(--accent); }
+.pager small { display: block; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
+
+/* ---------- Mobile / tablet ---------- */
+.menu-toggle { display: none; }
+.sidebar-backdrop { display: none; }
+
+@media (max-width: 1024px) {
+  :root { --sidebar-w: 260px; }
+}
+@media (max-width: 800px) {
+  body { font-size: 17px; }
+  .sidebar {
+    position: fixed; left: 0; top: 0; height: 100vh; z-index: 80;
+    padding-top: calc(60px + env(safe-area-inset-top, 0px));
+    box-shadow: 0 0 30px rgba(0,0,0,.25);
+  }
+  .sidebar.collapsed { margin-left: calc(var(--sidebar-w) * -1); }
+  .sidebar-backdrop.show {
+    display: block; position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 70;
+  }
+  main { padding: 24px 16px 100px; }
+  .hero { padding: 24px 20px; }
+  .hero h1 { font-size: 1.7rem; }
+  .chapter-header h2 { font-size: 1.6rem; }
+  .formula { padding: 16px 12px 12px; }
+  .variables { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .topbar .hide-sm { display: none; }
+  .pager { flex-direction: column; }
+}
+
+/* ---------- Print ---------- */
+@media print {
+  :root, :root[data-theme="dark"] {
+    --bg: #fff; --surface: #fff; --surface-2: #fff; --text: #000; --muted: #333;
+    --accent: #000; --accent-soft: #fff; --border: #999;
+    --def: #fff; --expl: #fff; --deriv: #fff; --example: #fff; --summary: #fff; --exam: #fff;
+    --def-border: #000; --expl-border: #000; --deriv-border: #000; --example-border: #000;
+    --summary-border: #000; --exam-border: #000;
+  }
+  body { font-size: 12pt; background: #fff; color: #000; }
+  .topbar, .sidebar, .pager, #progress, .icon-btn, .diagram-controls, .no-print { display: none !important; }
+  .layout { display: block; }
+  main { padding: 0; }
+  article { max-width: 100%; }
+  .box, .formula, figure.diagram, .hero, .toc-card { box-shadow: none; break-inside: avoid; }
+  .chapter { page-break-before: always; margin-bottom: 0; }
+  section.topic { break-inside: auto; }
+  h2, h3, h4 { break-after: avoid; }
+  a { color: #000; text-decoration: underline; }
+  a[href]:after { content: " (" attr(href) ")"; font-size: 10pt; color: #333; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  * { transition: none !important; animation: none !important; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress" aria-hidden="true"></div>
+
+<header class="topbar">
+  <button class="icon-btn" id="menuBtn" aria-label="Toggle chapter navigation" aria-expanded="true">☰</button>
+  <div class="title">Physics: Mechanics</div>
+  <div class="spacer"></div>
+  <button class="icon-btn hide-sm" id="printBtn" aria-label="Print textbook">Print</button>
+  <button class="icon-btn" id="themeBtn" aria-label="Toggle dark and light theme">◐ Theme</button>
+</header>
+
+<div class="sidebar-backdrop" id="backdrop"></div>
+
+<div class="layout">
+  <nav class="sidebar" id="sidebar" aria-label="Chapter navigation">
+    <h2>Contents</h2>
+    <ul id="tocList"></ul>
+  </nav>
+
+  <main>
+    <article id="top">
+
+      <div class="hero">
+        <h1>Physics: Mechanics</h1>
+        <p>An interactive digital textbook covering projectile motion and rotational motion, with derivations, worked examples, unit summaries and exam-focused points.</p>
+      </div>
+
+      <div class="toc-card">
+        <h3>How to use this textbook</h3>
+        <ol>
+          <li>Read each definition and explanation, then follow the derivation step by step.</li>
+          <li>Study each formula card: every symbol and SI unit is listed beneath it.</li>
+          <li>Work through the worked examples, covering the solution to test yourself first.</li>
+          <li>Finish each chapter with its unit summary and exam-focused points.</li>
+        </ol>
+      </div>
+
+      <!-- ===================== CHAPTER 1 ===================== -->
+      <section class="chapter" id="ch1">
+        <header class="chapter-header">
+          <div class="eyebrow">Chapter 1</div>
+          <h2>Projectile Motion</h2>
+        </header>
+
+        <section class="topic" id="ch1-1">
+          <h3>1.1 Introduction to projectile motion</h3>
+          <div class="box def">
+            <div class="box-label">Definition</div>
+            <p>Projectile motion is the two-dimensional motion of an object projected into the air and moving under the influence of gravitational acceleration, neglecting air resistance.</p>
+          </div>
+
+          <h4>Examples</h4>
+          <ul>
+            <li>A ball kicked into the air.</li>
+            <li>A stone thrown horizontally from a building.</li>
+            <li>A basketball shot toward a basket.</li>
+            <li>A ball thrown from an elevated platform.</li>
+          </ul>
+
+          <p>The object follows a curved path called a <strong>parabolic trajectory</strong> (for ideal projectile motion).</p>
+
+          <figure class="diagram">
+            <svg viewBox="0 0 640 300" role="img" aria-labelledby="d-proj-intro">
+              <title id="d-proj-intro">Parabolic trajectory of an ideal projectile</title>
+              <line x1="40" y1="260" x2="600" y2="260" stroke="var(--muted)" stroke-width="2"/>
+              <path id="traj-intro" d="M60 260 Q 330 -60 600 260" fill="none" stroke="var(--accent)" stroke-width="3" stroke-dasharray="6 6"/>
+              <circle id="ball-intro" r="9" fill="var(--example-border)"/>
+              <text x="60" y="290" fill="var(--muted)" font-size="14">Launch point</text>
+              <text x="520" y="290" fill="var(--muted)" font-size="14">Landing point</text>
+            </svg>
+            <figcaption>Ideal projectile path: a parabola under constant gravitational acceleration.</figcaption>
+          </figure>
+
+          <h4>1.1.1 Classification of projectile motion</h4>
+          <p>Projectile motion is commonly divided into two cases according to the direction of initial velocity.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Case</th><th>Initial velocity</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td>A. Horizontal projection</td><td>Parallel to the horizontal surface</td><td>Velocity makes no angle with the ground at launch.</td></tr>
+                <tr><td>B. Angled projection</td><td>Makes an angle with the horizontal</td><td>Velocity has both horizontal and vertical components.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="box expl">
+            <div class="box-label">Key principle</div>
+            <p>Both cases are governed by the same fundamental principle: <strong>horizontal and vertical motions are independent.</strong></p>
+          </div>
+        </section>
+
+        <section class="topic" id="ch1-2">
+          <h3>1.2 Fundamental principles of projectile motion</h3>
+          <p>Before deriving projectile equations, we need to understand how motion behaves along the two perpendicular directions.</p>
+
+          <h4>1.2.1 Horizontal motion (X-axis)</h4>
+          <p>When an object moves through the air without air resistance, there is no horizontal force acting on it. According to Newton's second law:</p>
+
+          <div class="formula"><span class="tag">Newton's 2nd law</span>
+\[F_x = m\,a_x\]
+</div>
+
+          <p>Since the horizontal resultant force is zero:</p>
+          <div class="formula"><span class="tag">Horizontal</span>
+\[0 = m\,a_x \quad\Rightarrow\quad \boxed{a_x = 0}\]
+</div>
+
+          <p>This means horizontal acceleration is zero, so horizontal velocity remains constant. Using the equation of linear motion, \(v = u + at\):</p>
+          <div class="formula"><span class="tag">Horizontal velocity</span>
+\[\boxed{v_x = u_x}\]
+</div>
+
+          <p>Horizontal displacement is:</p>
+          <div class="formula"><span class="tag">Horizontal displacement</span>
+\[\boxed{x = u_x\,t}\]
+</div>
+
+          <h4>1.2.2 Vertical motion (Y-axis)</h4>
+          <p>Gravity acts vertically downward throughout projectile motion. Taking upward as positive:</p>
+          <div class="formula"><span class="tag">Vertical acceleration</span>
+\[\boxed{a_y = -g}\]
+</div>
+
+          <p>Using the equation \(v = u + at\), we obtain:</p>
+          <div class="formula"><span class="tag">Vertical velocity</span>
+\[\boxed{v_y = u_y - g\,t}\]
+</div>
+
+          <p>Vertical displacement is \(y = u_y t + \tfrac{1}{2}a_y t^2\). Substituting \(a_y = -g\):</p>
+          <div class="formula"><span class="tag">Vertical displacement</span>
+\[\boxed{y = u_y\,t - \tfrac{1}{2}g\,t^2}\]
+</div>
+
+          <div class="box important">
+            <div class="box-label">Important</div>
+            <p>Horizontal acceleration is zero, but vertical acceleration is constant and downward.</p>
+          </div>
+
+          <div class="box summary">
+            <div class="box-label">Symbols and SI units</div>
+            <ul class="variables">
+              <li><strong>\(u_y\)</strong>: initial vertical velocity (m/s)</li>
+              <li><strong>\(v_y\)</strong>: final vertical velocity (m/s)</li>
+              <li><strong>\(g\)</strong>: acceleration due to gravity (m/s²), usually 10 m/s² in problems</li>
+              <li><strong>\(t\)</strong>: time (s)</li>
+              <li><strong>\(y\)</strong>: vertical displacement (m)</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="topic" id="ch1-3">
+          <h3>1.3 Horizontal projectile motion</h3>
+
+          <h4>1.3.1 Definition</h4>
+          <div class="box def">
+            <div class="box-label">Definition</div>
+            <p>Horizontal projectile motion occurs when an object is projected horizontally from an elevated position with an initial horizontal velocity.</p>
+          </div>
+
+          <p>Examples:</p>
+          <ul>
+            <li>A ball rolling off a table.</li>
+            <li>A stone thrown horizontally from a cliff.</li>
+            <li>Water flowing horizontally from a hole in a tank.</li>
+          </ul>
+
+          <figure class="diagram">
+            <svg viewBox="0 0 640 320" role="img" aria-labelledby="d-horiz">
+              <title id="d-horiz">Horizontal projection from height h</title>
+              <rect x="40" y="250" width="160" height="20" fill="var(--muted)"/>
+              <line x1="200" y1="60" x2="200" y2="250" stroke="var(--muted)" stroke-dasharray="4 4"/>
+              <path d="M200 60 Q 400 60 560 250" fill="none" stroke="var(--accent)" stroke-width="3" stroke-dasharray="6 6"/>
+              <circle cx="200" cy="60" r="9" fill="var(--example-border)"/>
+              <line x1="200" y1="60" x2="290" y2="60" stroke="var(--deriv-border)" stroke-width="3"/>
+              <polygon points="290,60 282,54 282,66" fill="var(--deriv-border)"/>
+              <text x="296" y="54" font-size="14" fill="var(--text)">u</text>
+              <text x="210" y="160" font-size="14" fill="var(--text)">h</text>
+              <text x="380" y="300" font-size="14" fill="var(--text)">R (horizontal range)</text>
+            </svg>
+            <figcaption>Horizontal projection: constant horizontal velocity <em>u</em>, initial vertical velocity zero.</figcaption>
+          </figure>
+
+          <h4>1.3.2 Characteristics</h4>
+          <ul class="checklist">
+            <li>Initial horizontal velocity is nonzero.</li>
+            <li>Initial vertical velocity is zero.</li>
+            <li>Horizontal velocity remains constant.</li>
+            <li>Vertical velocity increases downward due to gravity.</li>
+            <li>The object follows a parabolic path.</li>
+          </ul>
+
+          <h4>1.3.3 Mathematical derivation of horizontal projectile equations</h4>
+          <div class="box deriv">
+            <div class="box-label">Derivation</div>
+            <p>Suppose an object is projected horizontally with initial velocity \(u\) from a height \(h\).</p>
+
+            <p><strong>Step 1: Horizontal motion.</strong> Since horizontal acceleration is zero, \(a_x = 0\). Using \(x = u_x t + \tfrac{1}{2}a_x t^2\):</p>
+            <div class="formula">\[\boxed{x = u\,t}\]</div>
+
+            <p><strong>Step 2: Vertical motion.</strong> Since the object is projected horizontally, \(u_y = 0\). Taking downward as positive, vertical displacement is \(h = u_y t + \tfrac{1}{2}g t^2\). Substituting \(u_y = 0\):</p>
+            <div class="formula">\[h = \tfrac{1}{2}g\,t^2\]</div>
+
+            <p>Rearranging, \(2h = g t^2\), so \(t^2 = \dfrac{2h}{g}\). Taking the square root:</p>
+            <div class="formula"><span class="tag">Time of flight</span>
+\[\boxed{t = \sqrt{\frac{2h}{g}}}\]
+</div>
+
+            <p><strong>Step 3: Horizontal range.</strong> We already derived \(x = u\,t\). Substituting the time equation:</p>
+            <div class="formula"><span class="tag">Horizontal range</span>
+\[\boxed{R = u\sqrt{\frac{2h}{g}}}\]
+</div>
+          </div>
+
+          <h4>1.3.4 Important formulas</h4>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Physical quantity</th><th>Formula</th></tr></thead>
+              <tbody>
+                <tr><td>Horizontal velocity</td><td>\(v_x = u\)</td></tr>
+                <tr><td>Vertical velocity</td><td>\(v_y = g\,t\)</td></tr>
+                <tr><td>Horizontal displacement</td><td>\(x = u\,t\)</td></tr>
+                <tr><td>Vertical displacement</td><td>\(h = \tfrac{1}{2} g\,t^2\)</td></tr>
+                <tr><td>Time of flight</td><td>\(t = \sqrt{2h/g}\)</td></tr>
+                <tr><td>Horizontal range</td><td>\(R = u\sqrt{2h/g}\)</td></tr>
+                <tr><td>Resultant final velocity</td><td>\(v = \sqrt{v_x^2 + v_y^2}\)</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h4>1.3.5 Worked example</h4>
+          <div class="box example">
+            <div class="box-label">Worked example 1.1</div>
+            <p>A ball is projected horizontally from a building 45 m high with a velocity of 20 m/s. Calculate:</p>
+            <ul>
+              <li>Time taken to reach the ground.</li>
+              <li>Horizontal range.</li>
+              <li>Vertical velocity just before reaching the ground.</li>
+              <li>Resultant velocity just before impact.</li>
+            </ul>
+
+            <p><strong>Given:</strong> \(h = 45\ \text{m},\quad u = 20\ \text{m/s},\quad g = 10\ \text{m/s}^2\)</p>
+            <p><strong>Required:</strong> \(t,\ R,\ v_y,\ v\)</p>
+
+            <ol class="worked-steps">
+              <li>
+                <strong>Time of flight.</strong> Formula: \(t = \sqrt{2h/g}\).<br>
+                Substitution: \(t = \sqrt{\dfrac{2(45)}{10}} = \sqrt{9}\)
+                <div class="final-answer">\(t = 3\ \text{s}\)</div>
+              </li>
+              <li>
+                <strong>Horizontal range.</strong> Formula: \(R = u\,t\).<br>
+                Substitution: \(R = 20(3)\)
+                <div class="final-answer">\(R = 60\ \text{m}\)</div>
+              </li>
+              <li>
+                <strong>Final vertical velocity.</strong> Formula: \(v_y = g\,t\).<br>
+                Substitution: \(v_y = 10(3)\)
+                <div class="final-answer">\(v_y = 30\ \text{m/s, downward}\)</div>
+              </li>
+              <li>
+                <strong>Resultant velocity.</strong> Horizontal and vertical velocities are perpendicular, so by Pythagoras' theorem: \(v = \sqrt{v_x^2 + v_y^2}\).<br>
+                Substitution: \(v = \sqrt{20^2 + 30^2} = \sqrt{400 + 900} = \sqrt{1300}\)
+                <div class="final-answer">\(v \approx 36.06\ \text{m/s}\)</div>
+              </li>
+            </ol>
+          </div>
+        </section>
+
+        <section class="topic" id="ch1-4">
+          <h3>1.4 Angled projectile motion</h3>
+
+          <h4>1.4.1 Definition</h4>
+          <div class="box def">
+            <div class="box-label">Definition</div>
+            <p>Angled projectile motion occurs when an object is projected into the air with an initial velocity making an angle \(\theta\) with the horizontal surface.</p>
+          </div>
+
+          <p>Examples:</p>
+          <ul>
+            <li>A football kicked at an angle.</li>
+            <li>A basketball thrown toward a hoop.</li>
+            <li>A stone thrown upward and forward.</li>
+          </ul>
+
+          <figure class="diagram">
+            <svg viewBox="0 0 640 340" role="img" aria-labelledby="d-angled">
+              <title id="d-angled">Angled projection with launch angle theta</title>
+              <line x1="40" y1="290" x2="600" y2="290" stroke="var(--muted)" stroke-width="2"/>
+              <path d="M60 290 Q 330 -20 600 290" fill="none" stroke="var(--accent)" stroke-width="3" stroke-dasharray="6 6"/>
+              <line x1="60" y1="290" x2="170" y2="180" stroke="var(--deriv-border)" stroke-width="3"/>
+              <polygon points="170,180 161,186 166,194" fill="var(--deriv-border)"/>
+              <path d="M95 290 A 35 35 0 0 0 85 268" fill="none" stroke="var(--text)" stroke-width="2"/>
+              <text x="100" y="278" font-size="15" fill="var(--text)">θ</text>
+              <text x="178" y="176" font-size="15" fill="var(--text)">u</text>
+              <line x1="60" y1="290" x2="170" y2="290" stroke="var(--example-border)" stroke-width="2" stroke-dasharray="3 3"/>
+              <line x1="170" y1="180" x2="170" y2="290" stroke="var(--example-border)" stroke-width="2" stroke-dasharray="3 3"/>
+            </svg>
+            <figcaption>Initial velocity <em>u</em> at angle θ above the horizontal.</figcaption>
+          </figure>
+
+          <h4>1.4.2 Characteristics</h4>
+          <ul class="checklist">
+            <li>Initial velocity has horizontal and vertical components.</li>
+            <li>Horizontal velocity remains constant.</li>
+            <li>Vertical velocity changes due to gravity.</li>
+            <li>At maximum height, vertical velocity becomes zero.</li>
+            <li>The projectile follows a parabolic trajectory.</li>
+          </ul>
+
+          <h4>1.4.3 Resolving initial velocity into components</h4>
+          <p>Consider an object projected with initial velocity \(u\) at an angle \(\theta\). Its initial velocity can be divided into two perpendicular components. Using trigonometry:</p>
+
+          <div class="formula"><span class="tag">Horizontal component</span>
+\[\cos\theta = \frac{u_x}{u} \quad\Rightarrow\quad \boxed{u_x = u\cos\theta}\]
+</div>
+
+          <div class="formula"><span class="tag">Vertical component</span>
+\[\sin\theta = \frac{u_y}{u} \quad\Rightarrow\quad \boxed{u_y = u\sin\theta}\]
+</div>
+
+          <p>These are the initial horizontal and vertical velocity components.</p>
+
+          <h4>1.4.4 Equations of angled projectile motion</h4>
+          <div class="formula"><span class="tag">A. Horizontal displacement</span>
+\[x = u_x t \quad\Rightarrow\quad \boxed{x = u\cos\theta \cdot t}\]
+</div>
+          <div class="formula"><span class="tag">B. Vertical displacement</span>
+\[y = u_y t - \tfrac{1}{2}g t^2 \quad\Rightarrow\quad \boxed{y = u\sin\theta \cdot t - \tfrac{1}{2}g t^2}\]
+</div>
+          <div class="formula"><span class="tag">C. Horizontal velocity</span>
+\[\boxed{v_x = u\cos\theta}\]
+</div>
+          <div class="formula"><span class="tag">D. Vertical velocity</span>
+\[\boxed{v_y = u\sin\theta - g\,t}\]
+</div>
+
+          <h4>1.4.5 Time to reach maximum height</h4>
+          <p>At maximum height, vertical velocity is zero. The object stops moving upward momentarily before descending. Therefore \(v_y = 0\). Using \(v_y = u\sin\theta - gt\):</p>
+          <div class="formula">\[0 = u\sin\theta - g\,t \quad\Rightarrow\quad g\,t = u\sin\theta\]</div>
+          <div class="formula"><span class="tag">Time to maximum height</span>
+\[\boxed{t_{up} = \frac{u\sin\theta}{g}}\]
+</div>
+
+          <h4>1.4.6 Maximum height</h4>
+          <p>Use the vertical equation \(v_y^2 = u_y^2 + 2a_y y\). At maximum height \(v_y = 0\) and \(a_y = -g\):</p>
+          <div class="formula">\[0 = u_y^2 - 2g\,H \quad\Rightarrow\quad H = \frac{u_y^2}{2g}\]</div>
+          <p>Since \(u_y = u\sin\theta\):</p>
+          <div class="formula"><span class="tag">Maximum height</span>
+\[\boxed{H = \frac{u^2\sin^2\theta}{2g}}\]
+</div>
+
+          <h4>1.4.7 Total time of flight</h4>
+          <p>For a projectile that lands at the same height as its launch point, the upward and downward times are equal because the vertical motion is symmetrical. Therefore \(T = 2t_{up}\):</p>
+          <div class="formula"><span class="tag">Total time of flight</span>
+\[\boxed{T = \frac{2u\sin\theta}{g}}\]
+</div>
+
+          <h4>1.4.8 Horizontal range</h4>
+          <p>Horizontal range is the total horizontal distance travelled before the projectile returns to its original height. Using \(R = u\cos\theta \cdot T\) and substituting the total flight time:</p>
+          <div class="formula">\[R = u\cos\theta\left(\frac{2u\sin\theta}{g}\right) = \frac{2u^2\sin\theta\cos\theta}{g}\]</div>
+          <p>Using the identity \(\sin 2\theta = 2\sin\theta\cos\theta\):</p>
+          <div class="formula"><span class="tag">Horizontal range</span>
+\[\boxed{R = \frac{u^2\sin 2\theta}{g}}\]
+</div>
+
+          <h4>1.4.9 Important conclusions</h4>
+          <div class="box expl">
+            <div class="box-label">Maximum range</div>
+            <p>Since the maximum value of \(\sin 2\theta\) is 1:</p>
+            <div class="formula">\[\sin 2\theta = 1 \Rightarrow 2\theta = 90^\circ \Rightarrow \boxed{\theta = 45^\circ}\]</div>
+            <p>Thus, the maximum range occurs at a projection angle of \(45^\circ\), provided launch and landing heights are equal.</p>
+          </div>
+
+          <div class="box expl">
+            <div class="box-label">Complementary angles</div>
+            <p>Two projection angles are complementary when their sum is \(90^\circ\). For example, \(30^\circ + 60^\circ = 90^\circ\). Since:</p>
+            <div class="formula">\[\sin(2\times 30^\circ) = \sin 60^\circ \quad\text{and}\quad \sin(2\times 60^\circ) = \sin 120^\circ\]</div>
+            <p>Both have the same sine value. Therefore, the two angles produce equal horizontal ranges at the same initial speed.</p>
+          </div>
+
+          <h4>1.4.10 Trajectory equation</h4>
+          <p>The trajectory equation describes the relationship between horizontal position \(x\) and vertical position \(y\), without using time. We have \(x = u\cos\theta\cdot t\), so \(t = \dfrac{x}{u\cos\theta}\). Substituting into \(y = u\sin\theta\cdot t - \tfrac{1}{2}g t^2\):</p>
+          <div class="formula">\[y = u\sin\theta\left(\frac{x}{u\cos\theta}\right) - \frac{1}{2}g\left(\frac{x}{u\cos\theta}\right)^2\]</div>
+          <div class="formula"><span class="tag">Trajectory equation</span>
+\[\boxed{y = x\tan\theta - \frac{g\,x^2}{2u^2\cos^2\theta}}\]
+</div>
+          <p>This is a quadratic equation in \(x\), which explains why the ideal projectile follows a parabolic path.</p>
+
+          <h4>1.4.11 Worked example</h4>
+          <div class="box example">
+            <div class="box-label">Worked example 1.2</div>
+            <p>A football is kicked with an initial velocity of 30 m/s at an angle of \(30^\circ\) above the horizontal. Calculate:</p>
+            <ul>
+              <li>Horizontal velocity.</li>
+              <li>Vertical velocity.</li>
+              <li>Time to maximum height.</li>
+              <li>Maximum height.</li>
+              <li>Total time of flight.</li>
+              <li>Horizontal range.</li>
+            </ul>
+
+            <p><strong>Given:</strong> \(u = 30\ \text{m/s},\quad \theta = 30^\circ,\quad g = 10\ \text{m/s}^2\)</p>
+            <p><strong>Use:</strong> \(\sin 30^\circ = 0.5,\quad \cos 30^\circ = 0.866\)</p>
+
+            <ol class="worked-steps">
+              <li>
+                <strong>Horizontal velocity.</strong> Formula: \(u_x = u\cos\theta\).<br>
+                Substitution: \(u_x = 30(0.866)\)
+                <div class="final-answer">\(u_x = 25.98\ \text{m/s}\)</div>
+              </li>
+              <li>
+                <strong>Vertical velocity.</strong> Formula: \(u_y = u\sin\theta\).<br>
+                Substitution: \(u_y = 30(0.5)\)
+                <div class="final-answer">\(u_y = 15\ \text{m/s}\)</div>
+              </li>
+              <li>
+                <strong>Time to maximum height.</strong> Formula: \(t_{up} = \dfrac{u\sin\theta}{g}\).<br>
+                Substitution: \(t_{up} = \dfrac{30(0.5)}{10}\)
+                <div class="final-answer">\(t_{up} = 1.5\ \text{s}\)</div>
+              </li>
+              <li>
+                <strong>Maximum height.</strong> Formula: \(H = \dfrac{u^2\sin^2\theta}{2g}\).<br>
+                Substitution: \(H = \dfrac{30^2(0.5)^2}{2(10)} = \dfrac{900(0.25)}{20}\)
+                <div class="final-answer">\(H = 11.25\ \text{m}\)</div>
+              </li>
+              <li>
+                <strong>Total time of flight.</strong> Formula: \(T = \dfrac{2u\sin\theta}{g}\).<br>
+                Substitution: \(T = \dfrac{2(30)(0.5)}{10}\)
+                <div class="final-answer">\(T = 3\ \text{s}\)</div>
+              </li>
+              <li>
+                <strong>Horizontal range.</strong> Formula: \(R = \dfrac{u^2\sin 2\theta}{g}\).<br>
+                Substitution: \(R = \dfrac{30^2\sin 60^\circ}{10} = \dfrac{900(0.866)}{10}\)
+                <div class="final-answer">\(R = 77.94\ \text{m}\)</div>
+              </li>
+            </ol>
+          </div>
+        </section>
+
+        <section class="topic" id="ch1-symbols">
+          <h3>Chapter 1: Symbols and SI units</h3>
+          <div class="table-wrap">
+            <table class="sym-table">
+              <thead><tr><th>Symbol</th><th>Meaning</th><th>SI unit</th></tr></thead>
+              <tbody>
+                <tr><td>u</td><td>Initial velocity</td><td>m/s</td></tr>
+                <tr><td>v</td><td>Final velocity</td><td>m/s</td></tr>
+                <tr><td>θ</td><td>Angle of projection</td><td>degree or radian</td></tr>
+                <tr><td>g</td><td>Acceleration due to gravity</td><td>m/s²</td></tr>
+                <tr><td>t</td><td>Time</td><td>s</td></tr>
+                <tr><td>x, y, h, H, R</td><td>Displacement / height / range</td><td>m</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="topic" id="ch1-summary">
+          <h3>Chapter 1: Unit summary</h3>
+          <div class="box summary">
+            <div class="box-label">Summary</div>
+            <ul class="checklist">
+              <li>Projectile motion is two-dimensional motion under gravity alone, neglecting air resistance.</li>
+              <li>Horizontal and vertical motions are independent: \(a_x = 0\) and \(a_y = -g\).</li>
+              <li>Horizontal projection: \(u_y = 0\), \(t = \sqrt{2h/g}\), \(R = u\sqrt{2h/g}\).</li>
+              <li>Angled projection: \(u_x = u\cos\theta\), \(u_y = u\sin\theta\).</li>
+              <li>Time to maximum height \(t_{up} = \dfrac{u\sin\theta}{g}\); maximum height \(H = \dfrac{u^2\sin^2\theta}{2g}\).</li>
+              <li>Total time of flight \(T = \dfrac{2u\sin\theta}{g}\); range \(R = \dfrac{u^2\sin 2\theta}{g}\).</li>
+              <li>Range is maximum at \(\theta = 45^\circ\); complementary angles give equal ranges.</li>
+              <li>The trajectory is parabolic: \(y = x\tan\theta - \dfrac{gx^2}{2u^2\cos^2\theta}\).</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="topic" id="ch1-exam">
+          <h3>Chapter 1: Exam-focused points</h3>
+          <div class="box exam">
+            <div class="box-label">Exam focus</div>
+            <ul class="exam-list">
+              <li>Always resolve the initial velocity into components before using any equation.</li>
+              <li>Remember that \(a_x = 0\) in every projectile problem; do not add a horizontal acceleration term.</li>
+              <li>At maximum height, \(v_y = 0\). This is the key condition for finding \(t_{up}\) and \(H\).</li>
+              <li>Use \(T = 2t_{up}\) only when launch and landing heights are equal.</li>
+              <li>Range is maximum at \(45^\circ\); be ready to justify why complementary angles give the same range.</li>
+              <li>For the resultant velocity, combine perpendicular components with Pythagoras' theorem: \(v = \sqrt{v_x^2+v_y^2}\).</li>
+              <li>Write Given, Required, Formula, Substitution, Calculation and Final Answer clearly to earn method marks.</li>
+            </ul>
+            <div class="quiz">
+              <details>
+                <summary>Self-check: why does a ball dropped from rest and one projected horizontally reach the ground together?</summary>
+                <p>Vertical motion is independent of horizontal motion. Both have \(u_y = 0\) and the same \(a_y = -g\), so they fall the same height in the same time.</p>
+              </details>
+              <details>
+                <summary>Self-check: what is \(R\) when \(\theta = 60^\circ\) and \(\theta = 30^\circ\) at the same speed?</summary>
+                <p>Both give the same range, because \(\sin 120^\circ = \sin 60^\circ\).</p>
+              </details>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <!-- ===================== CHAPTER 2 ===================== -->
+      <section class="chapter" id="ch2">
+        <header class="chapter-header">
+          <div class="eyebrow">Chapter 2</div>
+          <h2>Rotational Motion</h2>
+        </header>
+
+        <section class="topic" id="ch2-1">
+          <h3>2.1 Introduction to rotational motion</h3>
+          <div class="box def">
+            <div class="box-label">Definition</div>
+            <p>Rotational motion is the motion of an object around a fixed axis, in which its particles move along circular paths centred on that axis.</p>
+          </div>
+
+          <p>Examples:</p>
+          <ul>
+            <li>A rotating fan.</li>
+            <li>A spinning wheel.</li>
+            <li>A rotating gear.</li>
+            <li>A clock's hands.</li>
+          </ul>
+
+          <h4>2.1.1 Classification of rotational motion</h4>
+          <p>Rotational motion can be classified according to whether angular velocity remains constant or changes.</p>
+          <ul>
+            <li><strong>Uniform rotational motion:</strong> angular velocity remains constant.</li>
+            <li><strong>Non-uniform rotational motion:</strong> angular velocity changes with time.</li>
+          </ul>
+          <p>To understand these types, we first need three fundamental quantities: angular displacement, angular velocity and angular acceleration.</p>
+        </section>
+
+        <section class="topic" id="ch2-2">
+          <h3>2.2 Angular displacement</h3>
+
+          <h4>2.2.1 Definition</h4>
+          <div class="box def">
+            <div class="box-label">Definition</div>
+            <p>Angular displacement is the angle through which an object rotates about a fixed axis, measured from its initial angular position to its final angular position.</p>
+          </div>
+          <div class="box summary">
+            <div class="box-label">Symbol and SI unit</div>
+            <ul class="variables">
+              <li><strong>\(\theta\)</strong>: angular displacement</li>
+              <li><strong>SI unit</strong>: radian (rad)</li>
+            </ul>
+          </div>
+
+          <h4>2.2.2 Derivation of angular displacement formula</h4>
+          <div class="box deriv">
+            <div class="box-label">Derivation</div>
+            <p>Consider a circle of radius \(r\), where an object moves along an arc of length \(s\). By the definition of the radian:</p>
+            <div class="formula">\[\theta = \frac{\text{Arc length}}{\text{Radius}}\]</div>
+            <div class="formula"><span class="tag">Angular displacement</span>
+\[\boxed{\theta = \frac{s}{r}}\]
+</div>
+            <p>Rearranging:</p>
+            <div class="formula"><span class="tag">Arc length</span>
+\[\boxed{s = r\theta}\]
+</div>
+          </div>
+          <div class="box important">
+            <div class="box-label">Important</div>
+            <p>This relationship requires angular displacement to be measured in radians.</p>
+          </div>
+
+          <h4>2.2.3 Angular measurement and conversion</h4>
+          <p>A complete revolution represents one complete circle. The circumference of a circle is \(C = 2\pi r\). Using \(\theta = s/r\), for one complete revolution \(\theta = \dfrac{2\pi r}{r}\):</p>
+          <div class="formula"><span class="tag">Conversion</span>
+\[\boxed{1\ \text{revolution} = 2\pi\ \text{rad} = 360^\circ}\]
+\[180^\circ = \pi\ \text{rad}\]
+</div>
+
+          <div class="formula"><span class="tag">Degree to radian</span>
+\[\boxed{\theta_{rad} = \theta_{deg}\cdot\frac{\pi}{180}}\]
+</div>
+          <div class="formula"><span class="tag">Radian to degree</span>
+\[\boxed{\theta_{deg} = \theta_{rad}\cdot\frac{180}{\pi}}\]
+</div>
+
+          <h4>2.2.4 Worked example</h4>
+          <div class="box example">
+            <div class="box-label">Worked example 2.1</div>
+            <p>A rotating wheel has a radius of 0.5 m. A point on its edge travels an arc length of 2 m. Calculate the angular displacement.</p>
+            <p><strong>Given:</strong> \(s = 2\ \text{m},\quad r = 0.5\ \text{m}\)</p>
+            <p><strong>Required:</strong> \(\theta\)</p>
+            <ol class="worked-steps">
+              <li>
+                <strong>Angular displacement.</strong> Formula: \(\theta = \dfrac{s}{r}\).<br>
+                Substitution: \(\theta = \dfrac{2}{0.5}\)
+                <div class="final-answer">\(\theta = 4\ \text{rad}\)</div>
+              </li>
+            </ol>
+          </div>
+        </section>
+
+        <section class="topic" id="ch2-3">
+          <h3>2.3 Angular velocity</h3>
+
+          <h4>2.3.1 Definition</h4>
+          <div class="box def">
+            <div class="box-label">Definition</div>
+            <p>Angular velocity is the rate of change of angular displacement with respect to time. It describes how quickly an object rotates and in which rotational direction.</p>
+          </div>
+          <div class="box summary">
+            <div class="box-label">Symbol and SI unit</div>
+            <ul class="variables">
+              <li><strong>\(\omega\)</strong>: angular velocity</li>
+              <li><strong>SI unit</strong>: rad/s</li>
+            </ul>
+          </div>
+
+          <h4>2.3.2 Derivation of angular velocity formula</h4>
+          <div class="box deriv">
+            <div class="box-label">Derivation</div>
+            <p>Average linear velocity is displacement divided by time. Similarly, average angular velocity is angular displacement divided by the time interval:</p>
+            <div class="formula">\[\boxed{\omega_{avg} = \frac{\Delta\theta}{\Delta t}}\]</div>
+            <p>For constant angular velocity:</p>
+            <div class="formula">\[\boxed{\omega = \frac{\theta}{t}}\]</div>
+          </div>
+
+          <h4>2.3.3 Relationship between angular velocity, frequency and period</h4>
+          <div class="box summary">
+            <div class="box-label">Symbols and SI units</div>
+            <ul class="variables">
+              <li><strong>\(f\)</strong>: frequency, the number of complete revolutions per second (Hz)</li>
+              <li><strong>\(T\)</strong>: period, the time for one revolution (s)</li>
+            </ul>
+          </div>
+          <div class="box deriv">
+            <div class="box-label">Derivation</div>
+            <p>One revolution corresponds to \(\theta = 2\pi\) radians. Using \(\omega = \theta/t\), for one complete revolution taking time \(T\):</p>
+            <div class="formula"><span class="tag">Angular velocity and period</span>
+\[\boxed{\omega = \frac{2\pi}{T}}\]
+</div>
+            <p>Since frequency is the reciprocal of period:</p>
+            <div class="formula"><span class="tag">Frequency and period</span>
+\[\boxed{f = \frac{1}{T}}\]
+</div>
+            <p>Substituting:</p>
+            <div class="formula"><span class="tag">Angular velocity and frequency</span>
+\[\boxed{\omega = 2\pi f}\]
+</div>
+          </div>
+
+          <h4>2.3.4 Worked example</h4>
+          <div class="box example">
+            <div class="box-label">Worked example 2.2</div>
+            <p>A rotating wheel completes 120 revolutions in 60 seconds. Calculate its frequency, period and angular velocity.</p>
+            <p><strong>Given:</strong> \(N = 120\ \text{revolutions},\quad t = 60\ \text{s}\)</p>
+            <ol class="worked-steps">
+              <li>
+                <strong>Frequency.</strong> Formula: \(f = \dfrac{\text{Number of revolutions}}{\text{Time}}\).<br>
+                Substitution: \(f = \dfrac{120}{60}\)
+                <div class="final-answer">\(f = 2\ \text{Hz}\)</div>
+              </li>
+              <li>
+                <strong>Period.</strong> Formula: \(T = \dfrac{1}{f}\).<br>
+                Substitution: \(T = \dfrac{1}{2}\)
+                <div class="final-answer">\(T = 0.5\ \text{s}\)</div>
+              </li>
+              <li>
+                <strong>Angular velocity.</strong> Formula: \(\omega = 2\pi f\).<br>
+                Substitution: \(\omega = 2\pi(2)\)
+                <div class="final-answer">\(\omega = 4\pi \approx 12.57\ \text{rad/s}\)</div>
+              </li>
+            </ol>
+          </div>
+        </section>
+
+        <section class="topic" id="ch2-4">
+          <h3>2.4 Angular acceleration</h3>
+
+          <h4>2.4.1 Definition</h4>
+          <div class="box def">
+            <div class="box-label">Definition</div>
+            <p>Angular acceleration is the rate of change of angular velocity with respect to time. It describes how quickly the rotational speed changes.</p>
+          </div>
+          <div class="box summary">
+            <div class="box-label">Symbol and SI unit</div>
+            <ul class="variables">
+              <li><strong>\(\alpha\)</strong>: angular acceleration</li>
+              <li><strong>SI unit</strong>: rad/s²</li>
+            </ul>
+          </div>
+
+          <h4>2.4.2 Derivation of angular acceleration formula</h4>
+          <div class="box deriv">
+            <div class="box-label">Derivation</div>
+            <p>Average linear acceleration is \(a = \dfrac{\Delta v}{\Delta t}\). Similarly, average angular acceleration is:</p>
+            <div class="formula">\[\alpha = \frac{\Delta\omega}{\Delta t}\]</div>
+            <div class="formula"><span class="tag">Angular acceleration</span>
+\[\boxed{\alpha = \frac{\omega_f - \omega_i}{t}}\]
+</div>
+            <ul class="variables">
+              <li><strong>\(\omega_f\)</strong>: final angular velocity (rad/s)</li>
+              <li><strong>\(\omega_i\)</strong>: initial angular velocity (rad/s)</li>
+              <li><strong>\(t\)</strong>: elapsed time (s)</li>
+            </ul>
+          </div>
+
+          <h4>2.4.3 Worked example</h4>
+          <div class="box example">
+            <div class="box-label">Worked example 2.3</div>
+            <p>A wheel initially rotates at 5 rad/s. Its angular velocity increases to 25 rad/s in 4 seconds. Calculate the angular acceleration.</p>
+            <p><strong>Given:</strong> \(\omega_i = 5\ \text{rad/s},\quad \omega_f = 25\ \text{rad/s},\quad t = 4\ \text{s}\)</p>
+            <ol class="worked-steps">
+              <li>
+                <strong>Angular acceleration.</strong> Formula: \(\alpha = \dfrac{\omega_f - \omega_i}{t}\).<br>
+                Substitution: \(\alpha = \dfrac{25 - 5}{4} = \dfrac{20}{4}\)
+                <div class="final-answer">\(\alpha = 5\ \text{rad/s}^2\)</div>
+              </li>
+            </ol>
+          </div>
+        </section>
+
+        <section class="topic" id="ch2-5">
+          <h3>2.5 Equations of rotational motion</h3>
+          <p>For constant angular acceleration, rotational motion has equations corresponding to the equations of linear motion. This connection comes from the same kinematic principles: constant acceleration.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Linear motion</th><th>Rotational motion</th></tr></thead>
+              <tbody>
+                <tr><td>\(v = u + at\)</td><td>\(\omega_f = \omega_i + \alpha t\)</td></tr>
+                <tr><td>\(s = ut + \tfrac{1}{2}at^2\)</td><td>\(\theta = \omega_i t + \tfrac{1}{2}\alpha t^2\)</td></tr>
+                <tr><td>\(v^2 = u^2 + 2as\)</td><td>\(\omega_f^2 = \omega_i^2 + 2\alpha\theta\)</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h4>Worked example 2.4</h4>
+          <div class="box example">
+            <div class="box-label">Worked example 2.4</div>
+            <p>A wheel starts from rest and rotates with a constant angular acceleration of \(3\ \text{rad/s}^2\) for 4 seconds. Find its final angular velocity and angular displacement.</p>
+            <p><strong>Given:</strong> \(\omega_i = 0,\quad \alpha = 3\ \text{rad/s}^2,\quad t = 4\ \text{s}\)</p>
+            <ol class="worked-steps">
+              <li>
+                <strong>Final angular velocity.</strong> Formula: \(\omega_f = \omega_i + \alpha t\).<br>
+                Substitution: \(\omega_f = 0 + 3(4)\)
+                <div class="final-answer">\(\omega_f = 12\ \text{rad/s}\)</div>
+              </li>
+              <li>
+                <strong>Angular displacement.</strong> Formula: \(\theta = \omega_i t + \tfrac{1}{2}\alpha t^2\).<br>
+                Substitution: \(\theta = 0(4) + \tfrac{1}{2}(3)(4^2) = 1.5(16)\)
+                <div class="final-answer">\(\theta = 24\ \text{rad}\)</div>
+              </li>
+            </ol>
+          </div>
+        </section>
+
+        <section class="topic" id="ch2-6">
+          <h3>2.6 Relationship between angular and linear quantities</h3>
+          <p>A rotating object has angular motion around its axis, while points on the object also travel along circular paths. This allows us to connect rotational quantities with linear quantities.</p>
+
+          <h4>2.6.1 Linear velocity and angular velocity</h4>
+          <div class="box deriv">
+            <div class="box-label">Derivation</div>
+            <p>We already derived \(s = r\theta\). Divide both sides by time:</p>
+            <div class="formula">\[\frac{s}{t} = r\,\frac{\theta}{t}\]</div>
+            <p>Since \(v = \dfrac{s}{t}\) and \(\omega = \dfrac{\theta}{t}\), we obtain:</p>
+            <div class="formula"><span class="tag">Linear and angular velocity</span>
+\[\boxed{v = r\omega}\]
+</div>
+          </div>
+
+          <h4>2.6.2 Tangential acceleration and angular acceleration</h4>
+          <div class="box deriv">
+            <div class="box-label">Derivation</div>
+            <p>Starting with \(v = r\omega\), differentiate with respect to time for a fixed radius:</p>
+            <div class="formula">\[\frac{dv}{dt} = r\,\frac{d\omega}{dt}\]</div>
+            <p>Since \(a_t = \dfrac{dv}{dt}\) and \(\alpha = \dfrac{d\omega}{dt}\):</p>
+            <div class="formula"><span class="tag">Tangential acceleration</span>
+\[\boxed{a_t = r\alpha}\]
+</div>
+          </div>
+
+          <h4>2.6.3 Centripetal acceleration</h4>
+          <p>Even when an object moves at constant speed around a circle, its velocity changes because its direction changes. A change in velocity means acceleration exists. This inward acceleration is called centripetal acceleration.</p>
+          <div class="formula"><span class="tag">Centripetal acceleration</span>
+\[\boxed{a_c = \frac{v^2}{r}}\]
+</div>
+          <p>Using \(v = r\omega\):</p>
+          <div class="formula">\[a_c = \frac{(r\omega)^2}{r} \quad\Rightarrow\quad \boxed{a_c = r\omega^2}\]</div>
+
+          <div class="box summary">
+            <div class="box-label">Symbols and SI units</div>
+            <ul class="variables">
+              <li><strong>\(v\)</strong>: linear (tangential) velocity (m/s)</li>
+              <li><strong>\(r\)</strong>: radius (m)</li>
+              <li><strong>\(a_t\)</strong>: tangential acceleration (m/s²)</li>
+              <li><strong>\(a_c\)</strong>: centripetal acceleration (m/s²)</li>
+            </ul>
+          </div>
+
+          <h4>2.6.4 Worked example</h4>
+          <div class="box example">
+            <div class="box-label">Worked example 2.5</div>
+            <p>A wheel of radius 0.4 m rotates with an angular velocity of 10 rad/s and an angular acceleration of 2 rad/s². Find:</p>
+            <ul>
+              <li>Linear velocity.</li>
+              <li>Tangential acceleration.</li>
+              <li>Centripetal acceleration.</li>
+            </ul>
+            <p><strong>Given:</strong> \(r = 0.4\ \text{m},\quad \omega = 10\ \text{rad/s},\quad \alpha = 2\ \text{rad/s}^2\)</p>
+            <ol class="worked-steps">
+              <li>
+                <strong>Linear velocity.</strong> Formula: \(v = r\omega\).<br>
+                Substitution: \(v = 0.4(10)\)
+                <div class="final-answer">\(v = 4\ \text{m/s}\)</div>
+              </li>
+              <li>
+                <strong>Tangential acceleration.</strong> Formula: \(a_t = r\alpha\).<br>
+                Substitution: \(a_t = 0.4(2)\)
+                <div class="final-answer">\(a_t = 0.8\ \text{m/s}^2\)</div>
+              </li>
+              <li>
+                <strong>Centripetal acceleration.</strong> Formula: \(a_c = r\omega^2\).<br>
+                Substitution: \(a_c = 0.4(10)^2\)
+                <div class="final-answer">\(a_c = 40\ \text{m/s}^2\)</div>
+              </li>
+            </ol>
+          </div>
+        </section>
+
+        <section class="topic" id="ch2-7">
+          <h3>2.7 Centripetal force</h3>
+
+          <h4>2.7.1 Definition</h4>
+          <div class="box def">
+            <div class="box-label">Definition</div>
+            <p>Centripetal force is the resultant inward force required to keep an object moving along a circular path.</p>
+          </div>
+
+          <h4>2.7.2 Derivation</h4>
+          <div class="box deriv">
+            <div class="box-label">Derivation</div>
+            <p>Using Newton's second law \(F = ma\). For circular motion, the inward acceleration is centripetal acceleration, so \(F_c = m\,a_c\):</p>
+            <div class="formula"><span class="tag">Centripetal force</span>
+\[\boxed{F_c = \frac{m v^2}{r}}\]
+</div>
+            <p>Since \(v = r\omega\), this can also be written as \(F_c = m r\omega^2\).</p>
+          </div>
+        </section>
+
+        <section class="topic" id="ch2-symbols">
+          <h3>Chapter 2: Symbols and SI units</h3>
+          <div class="table-wrap">
+            <table class="sym-table">
+              <thead><tr><th>Symbol</th><th>Meaning</th><th>SI unit</th></tr></thead>
+              <tbody>
+                <tr><td>θ</td><td>Angular displacement</td><td>rad</td></tr>
+                <tr><td>ω</td><td>Angular velocity</td><td>rad/s</td></tr>
+                <tr><td>α</td><td>Angular acceleration</td><td>rad/s²</td></tr>
+                <tr><td>f</td><td>Frequency</td><td>Hz</td></tr>
+                <tr><td>T</td><td>Period</td><td>s</td></tr>
+                <tr><td>r</td><td>Radius</td><td>m</td></tr>
+                <tr><td>s</td><td>Arc length</td><td>m</td></tr>
+                <tr><td>F_c</td><td>Centripetal force</td><td>N</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="topic" id="ch2-summary">
+          <h3>Chapter 2: Unit summary</h3>
+          <div class="box summary">
+            <div class="box-label">Summary</div>
+            <ul class="checklist">
+              <li>Rotational motion is motion about a fixed axis; uniform means constant angular velocity.</li>
+              <li>Angular displacement \(\theta = s/r\) is measured in radians; \(2\pi\ \text{rad} = 360^\circ\).</li>
+              <li>Angular velocity \(\omega = \theta/t = 2\pi/T = 2\pi f\), with \(f = 1/T\).</li>
+              <li>Angular acceleration \(\alpha = (\omega_f - \omega_i)/t\).</li>
+              <li>For constant \(\alpha\): \(\omega_f = \omega_i + \alpha t\), \(\theta = \omega_i t + \tfrac{1}{2}\alpha t^2\), \(\omega_f^2 = \omega_i^2 + 2\alpha\theta\).</li>
+              <li>Linear–angular links: \(v = r\omega\), \(a_t = r\alpha\), \(a_c = v^2/r = r\omega^2\).</li>
+              <li>Centripetal force \(F_c = mv^2/r = mr\omega^2\).</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="topic" id="ch2-exam">
+          <h3>Chapter 2: Exam-focused points</h3>
+          <div class="box exam">
+            <div class="box-label">Exam focus</div>
+            <ul class="exam-list">
+              <li>Convert all angles to radians before using \(s = r\theta\) or \(\omega = \theta/t\).</li>
+              <li>Remember \(f = 1/T\) and \(\omega = 2\pi f\); many questions give revolutions and time, so compute \(f\) first.</li>
+              <li>Use the rotational kinematic equations only when angular acceleration is constant.</li>
+              <li>Distinguish linear quantities (\(v, a_t\)) from angular quantities (\(\omega, \alpha\)); the link is always through \(r\).</li>
+              <li>Centripetal acceleration acts inward even at constant speed, because direction changes.</li>
+              <li>Show the substitution with units in every step to avoid losing marks.</li>
+            </ul>
+            <div class="quiz">
+              <details>
+                <summary>Self-check: a wheel of radius 0.5 m turns through 4 rad. What arc length does a point on the rim travel?</summary>
+                <p>\(s = r\theta = 0.5 \times 4 = 2\ \text{m}\).</p>
+              </details>
+              <details>
+                <summary>Self-check: why is \(a_c\) nonzero for uniform circular motion?</summary>
+                <p>Because the direction of velocity changes continuously, so there is an inward acceleration even when the speed is constant.</p>
+              </details>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <nav class="pager" aria-label="Chapter pager">
+        <a href="#ch1" id="prevLink" style="visibility:hidden"><small>Previous</small>Projectile Motion</a>
+        <a href="#ch2" id="nextLink"><small>Next</small>Rotational Motion</a>
+      </nav>
+
+    </article>
+  </main>
+</div>
+
+<script>
+(function () {
+  // ---------- Theme ----------
+  const root = document.documentElement;
+  const themeBtn = document.getElementById('themeBtn');
+  const saved = null; // in-memory only: storage is not used in this file
+  if (saved) root.setAttribute('data-theme', saved);
+  themeBtn.addEventListener('click', () => {
+    const current = root.getAttribute('data-theme');
+    const dark = current === 'dark' || (!current && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    root.setAttribute('data-theme', dark ? 'light' : 'dark');
+  });
+
+  // ---------- Sidebar ----------
+  const sidebar = document.getElementById('sidebar');
+  const menuBtn = document.getElementById('menuBtn');
+  const backdrop = document.getElementById('backdrop');
+  const isMobile = () => window.matchMedia('(max-width: 800px)').matches;
+
+  function setSidebar(open) {
+    sidebar.classList.toggle('collapsed', !open);
+    menuBtn.setAttribute('aria-expanded', String(open));
+    backdrop.classList.toggle('show', open && isMobile());
+  }
+  setSidebar(!isMobile());
+  menuBtn.addEventListener('click', () => setSidebar(sidebar.classList.contains('collapsed')));
+  backdrop.addEventListener('click', () => setSidebar(false));
+
+  // ---------- Build TOC from headings ----------
+  const tocList = document.getElementById('tocList');
+  const topics = document.querySelectorAll('section.topic');
+  const chapters = document.querySelectorAll('section.chapter');
+
+  chapters.forEach(ch => {
+    const title = ch.querySelector('.chapter-header h2').textContent;
+    const eyebrow = ch.querySelector('.eyebrow').textContent;
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+    a.href = '#' + ch.id;
+    a.className = 'chapter-link';
+    a.textContent = eyebrow + ': ' + title;
+    li.appendChild(a);
+    tocList.appendChild(li);
+
+    ch.querySelectorAll(':scope > section.topic').forEach(t => {
+      const h = t.querySelector('h3');
+      const sub = document.createElement('li');
+      const sa = document.createElement('a');
+      sa.href = '#' + t.id;
+      sa.className = 'sub-link';
+      sa.dataset.target = t.id;
+      sa.textContent = h.textContent;
+      sub.appendChild(sa);
+      tocList.appendChild(sub);
+    });
+  });
+
+  // Smooth navigation: close the drawer on mobile after choosing a link
+  sidebar.addEventListener('click', e => {
+    if (e.target.tagName === 'A' && isMobile()) setSidebar(false);
+  });
+
+  // ---------- Active section highlight ----------
+  const links = Array.from(document.querySelectorAll('.sub-link'));
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.toggle('active', l.dataset.target === entry.target.id));
+      }
+    });
+  }, { rootMargin: '-35% 0px -55% 0px' });
+  topics.forEach(t => io.observe(t));
+
+  // ---------- Reading progress ----------
+  const bar = document.getElementById('progress');
+  function updateProgress() {
+    const h = document.documentElement;
+    const max = h.scrollHeight - h.clientHeight;
+    bar.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + '%';
+  }
+  window.addEventListener('scroll', updateProgress, { passive: true });
+  updateProgress();
+
+  // ---------- Print ----------
+  document.getElementById('printBtn').addEventListener('click', () => window.print());
+
+  // ---------- Pager ----------
+  document.getElementById('prevLink').addEventListener('click', e => { e.preventDefault(); document.getElementById('ch1').scrollIntoView({ behavior: 'smooth' }); });
+  document.getElementById('nextLink').addEventListener('click', e => { e.preventDefault(); document.getElementById('ch2').scrollIntoView({ behavior: 'smooth' }); });
+})();
+</script>
+</body>
+</html>
